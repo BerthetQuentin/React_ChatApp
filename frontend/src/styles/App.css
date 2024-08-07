@@ -10,7 +10,7 @@
 }
 
 .Header, .ChatList {
-    width: 80%; /* Vous pouvez ajuster la largeur selon vos besoins */
+    width: 80%;
     max-width: 1200px; /* Limite maximale pour la largeur */
     margin: 20px 0; /* Espacement vertical entre les éléments */
 }
