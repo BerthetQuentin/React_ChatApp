@@ -1,72 +1,79 @@
-import "../styles/ChatList.css"
-import io from "socket.io-client"
+import React, { useEffect, useState } from 'react';
+import io from 'socket.io-client';
+import MessageList from './MessageList';
+import MessageInput from './MessageInput';
+import UsernameInput from './UsernameInput';
+import '../styles/ChatList.css';
 
-const ChatList = () =>{
-    const socket = io()
+const ChatList = () => {
+    const [socket] = useState(() => io('http://localhost:3001'));
+    const [username, setUsername] = useState('');
+    const [messages, setMessages] = useState([]);
+    const [error, setError] = useState('');
 
-    const form = document.getElementById('form');
-    let inputUser = document.getElementById('inputUsername');
-    let inputMessage = document.getElementById('inputMessage');
-    let errorMessage = document.getElementById('errorMessage');
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (!socket.username && inputUser.value) {
-            socket.emit('set username', inputUser.value, function(success) {
-                if (success) {
-                    socket.username = inputUser.value;
-                    inputUser.disabled = true;
-                    inputMessage.disabled = false;
-                    errorMessage.textContent = '';
-                } else {
-                    errorMessage.textContent = 'Username already taken. Please choose another one.';
-                }
-            });
-        } else if (socket.username && inputMessage.value) {
-            socket.emit('chat message', inputMessage.value);
-            inputMessage.value = '';
-        }
-    });
-
-    socket.on('chat message', function(msg) {
-        let item = document.createElement('li');
-        item.textContent = msg;
-        document.getElementById('messages').appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
-    });
-
-    socket.on('user connected', function(user) {
-        let item = document.createElement('li');
-        item.textContent = user + ' has joined the chat.';
-        document.getElementById('messages').appendChild(item);
-    });
-
-    socket.on('user disconnected', function(user) {
-        let item = document.createElement('li');
-        item.textContent = user + ' has left the chat.';
-        document.getElementById('messages').appendChild(item);
-    });
-
-// Écouter l'événement 'chat history' pour récupérer l'historique des messages
-    socket.on('chat history', function(history) {
-        history.forEach(function (msg) {
-            let item = document.createElement('li');
-            item.textContent = msg;
-            document.getElementById('messages').appendChild(item);
+    useEffect(() => {
+        socket.on('connect', () => {
+            console.log('Connecté au serveur Socket.io');
         });
-        window.scrollTo(0, document.body.scrollHeight);
-    })
-    return(
-        <>
-            <ul id="messages"></ul>
-            <form id="form" action="">
-                <input id="inputUsername" autoComplete="off" placeholder="Enter your username"/>
-                <input id="inputMessage" autoComplete="off" placeholder="Enter your message" disabled/>
-                <button>Send</button>
-            </form>
-            <p className="errorMessage"></p>
-        </>
-    )
-}
+
+        socket.on('chat message', (msg) => {
+            setMessages((prevMessages) => [...prevMessages, msg]);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        socket.on('user connected', (user) => {
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                `${user} has joined the chat.`,
+            ]);
+        });
+
+        socket.on('user disconnected', (user) => {
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                `${user} has left the chat.`,
+            ]);
+        });
+
+        socket.on('chat history', (history) => {
+            setMessages(history);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [socket]);
+
+    const handleSetUsername = (usernameValue) => {
+        socket.emit('set username', usernameValue, (success) => {
+            if (success) {
+                setUsername(usernameValue);
+                setError('');
+            } else {
+                setError('Username already taken. Please choose another one.');
+            }
+        });
+    };
+
+    const handleSendMessage = (messageValue) => {
+        if (messageValue) {
+            socket.emit('chat message', messageValue);
+        } else {
+            setError('Please enter a message.');
+        }
+    };
+
+    return (
+        <div className="chat-container">
+            <MessageList messages={messages} />
+            {!username ? (
+                <UsernameInput onSetUsername={handleSetUsername} error={error} />
+            ) : (
+                <MessageInput onSendMessage={handleSendMessage} />
+            )}
+        </div>
+    );
+};
 
 export default ChatList;

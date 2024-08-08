@@ -1,11 +1,42 @@
-/* frontend/src/styles/Header.css */
 .Header {
-    font-size: calc(10px + 2vmin);
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    max-width: 600px;
     text-align: center;
     font-family: 'Arial', sans-serif;
     color: #333;
-    background-color: #cbfff7;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.Header p {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+}
+
+.Header a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.Header a:hover {
+    color: #0056b3;
+}
+
+.Header ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.Header li {
+    display: inline;
+    margin: 0 10px;
+    font-size: 1em;
+}
+
+.Header li a {
+    font-weight: bold;
 }
