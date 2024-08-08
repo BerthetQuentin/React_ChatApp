@@ -1,17 +1,23 @@
-/* App.css */
-
 .App {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     min-height: 100vh;
     text-align: center;
+    background: #3e4444;
+    color: #f0f0f0;
 }
 
 .Header, .ChatList {
     width: 80%;
     max-width: 1200px; /* Limite maximale pour la largeur */
-    margin: 20px 0; /* Espacement vertical entre les éléments */
 }
 
+.ChatList {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pour espacer les messages du formulaire */
+    height: 80vh; /* Hauteur maximale */
+    max-height: 600px; /* Hauteur maximale fixe si nécessaire */
+    overflow: hidden; /* Pour masquer les débordements internes */
+}

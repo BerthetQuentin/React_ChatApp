@@ -1,15 +1,34 @@
 const express = require("express");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const cors = require("cors");
 const path = require("path");
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
 
-const port = process.env.PORT || 3001;
+// Configuration CORS
+const corsOptions = {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT"],
+    allowedHeaders: ["Content-Type"],
+};
 
+app.use(cors(corsOptions));
+
+// Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Configuration de Socket.IO
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:3000", // Assurez-vous que cela correspond à l'URL de votre frontend
+        methods: ["GET", "POST"]
+    },
+    pingInterval: 25000,
+    pingTimeout: 20000,
+    maxHttpBufferSize: 1e6 // 1 MB
+});
 
 let users = [];
 let messageHistory = []; // Tableau pour stocker l'historique des messages
@@ -26,12 +45,13 @@ io.on("connection", (socket) => {
         hour12: false
     });
 
-    console.log(formattedDate + " : a user connected");
+    console.log(`${formattedDate} : a user connected`);
 
     // Envoyer l'historique des messages au nouveau client
     socket.emit("chat history", messageHistory);
 
     socket.on("set username", (user, callback) => {
+        console.log("Received set username:", username); // Log du nom d'utilisateur
         if (users.includes(user)) {
             callback(false); // Nom d'utilisateur déjà pris
         } else {
@@ -47,12 +67,12 @@ io.on("connection", (socket) => {
                 second: 'numeric',
                 hour12: false
             });
-            console.log(formattedDate + " : Username set to : " + user);
+            console.log(`${formattedDate} : Username set to : ${user}`);
 
             io.emit("user connected", user);
 
             // Ajouter le message à l'historique
-            messageHistory.push(user + " has joined the chat");
+            messageHistory.push(`${user} has joined the chat`);
 
             // Limiter l'historique aux 100 derniers messages
             if (messageHistory.length > 100) {
@@ -62,9 +82,10 @@ io.on("connection", (socket) => {
     });
 
     socket.on("chat message", (msg) => {
+        console.log("Received chat message:", msg); // Log du message
         if (socket.username) {
             let fullMessage = `${socket.username}: ${msg}`;
-            console.log("message: " + fullMessage);
+            console.log(`message: ${fullMessage}`);
 
             // Ajouter le message à l'historique
             messageHistory.push(fullMessage);
@@ -81,10 +102,10 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         if (socket.username) {
             users = users.filter(user => user !== socket.username);
-            console.log("user disconnected: " + socket.username);
+            console.log(`user disconnected: ${socket.username}`);
 
             // Ajouter le message à l'historique
-            messageHistory.push(socket.username + " has left the chat.")
+            messageHistory.push(`${socket.username} has left the chat`);
 
             // Limiter l'historique aux 100 derniers messages
             if (messageHistory.length > 100) {
@@ -96,6 +117,7 @@ io.on("connection", (socket) => {
     });
 });
 
+const port = process.env.PORT || 3001;
 server.listen(port, () => {
-    console.log("listening on http://localhost:" + port);
+    console.log(`listening on http://localhost:${port}`);
 });
