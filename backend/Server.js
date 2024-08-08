@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
     socket.emit("chat history", messageHistory);
 
     socket.on("set username", (user, callback) => {
-        console.log("Received set username:", username); // Log du nom d'utilisateur
+        console.log("Received set username:", user); // Log du nom d'utilisateur
         if (users.includes(user)) {
             callback(false); // Nom d'utilisateur déjà pris
         } else {
