@@ -18,10 +18,12 @@ const ChatList = () => {
 
         socket.on('chat message', (msg) => {
             setMessages((prevMessages) => [...prevMessages, msg]);
+            console.log('Received chat message:', msg);
             window.scrollTo(0, document.body.scrollHeight);
         });
 
         socket.on('user connected', (user) => {
+            console.log('User connected:', user);
             setMessages((prevMessages) => [
                 ...prevMessages,
                 `${user} has joined the chat.`,
@@ -46,6 +48,7 @@ const ChatList = () => {
     }, [socket]);
 
     const handleSetUsername = (usernameValue) => {
+        console.log(usernameValue);
         socket.emit('set username', usernameValue, (success) => {
             if (success) {
                 setUsername(usernameValue);
